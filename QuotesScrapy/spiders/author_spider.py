@@ -4,6 +4,12 @@ import scrapy
 class AuthorSpider(scrapy.Spider):
     name = 'author'
 
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'project_name.pipelines.AuthorPipeline': 300
+        }
+    }
+
     start_urls = ['http://quotes.toscrape.com/']
 
     def parse(self, response):
@@ -19,5 +25,6 @@ class AuthorSpider(scrapy.Spider):
 
         yield {
             'name': extract_with_css('h3.author-title::text'),
-            'birthdate': extract_with_css('.author-born-date::text')
+            'birthdate': extract_with_css('.author-born-date::text'),
+            'bio': extract_with_css('.author-description::text'),
         }

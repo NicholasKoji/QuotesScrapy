@@ -4,6 +4,12 @@ import scrapy
 class QuotesSpider(scrapy.Spider):
     name = "quotes"
 
+    custom_settings = {
+        'ITEM_PIPELINES': {
+            'project_name.pipelines.QuotesPipeline': 300
+        }
+    }
+
     def start_requests(self):
         url = 'http://quotes.toscrape.com/'
         tag = getattr(self, 'tag', None)

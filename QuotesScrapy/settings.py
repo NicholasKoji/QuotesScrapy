@@ -63,8 +63,8 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'QuotesScrapy.pipelines.QuotesscrapyPipeline': 300,
-   'QuotesScrapy.pipelines.AuthorPipeline': 400,
+   'QuotesScrapy.pipelines.AuthorPipeline': 300,
+   'QuotesScrapy.pipelines.QuotesPipeline': 400,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
