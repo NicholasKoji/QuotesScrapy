@@ -19,7 +19,7 @@ NEWSPIDER_MODULE = 'QuotesScrapy.spiders'
 ROBOTSTXT_OBEY = True
 
 # 请求连接超时时间、下载超时时间
-DOWNLOAD_TIMEOUT = 15
+# DOWNLOAD_TIMEOUT = 15
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 32
@@ -28,7 +28,7 @@ DOWNLOAD_TIMEOUT = 15
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
 # 受RANDOMIZE_DOWNLOAD_DELAY设置影响，实际请求间隔为0.5~1.5*DOWNLOAD_DELAY
-DOWNLOAD_DELAY = 3
+# DOWNLOAD_DELAY = 3
 # The download delay setting will honor only one of:
 # CONCURRENT_REQUESTS_PER_DOMAIN = 16
 # CONCURRENT_REQUESTS_PER_IP = 16

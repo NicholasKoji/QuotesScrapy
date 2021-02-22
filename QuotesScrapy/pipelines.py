@@ -10,9 +10,9 @@ from datetime import datetime
 from itemadapter import ItemAdapter
 from QuotesScrapy.common import database as db
 
-def getDate(str):
-    dateStr = re.sub(',', '', str)
-    return datetime.strptime(dateStr, '%Y/%m/%d')
+
+def getDate(dateText):
+    return datetime.strptime(dateText, '%B %d, %Y')
 
 
 class AuthorPipeline:
@@ -20,17 +20,17 @@ class AuthorPipeline:
         self.cnx, self.cursor = db.dbConnect()
 
     def open_spider(self, spider):
-        pass
+        self.cursor.execute('truncate table author')
+        self.cnx.commit()
 
     def process_item(self, item, spider):
         authorDict = item
-        print('item=====>', authorDict['name'])
-        sql = (
-            '''INSERT INTO author
-            (name, birthdate, bio)
-            VALUES (%(name)s, %(birthdate)s, %(bio)s)'''
-        )
-        self.cursor.execute(sql, authorDict)
+        authorDict['birthdate'] = getDate(authorDict['birthdate'])
+        print('name==========>', authorDict['name'])
+        print('birthdate=====>', authorDict['birthdate'])
+        sql = 'INSERT INTO author (name, birthdate, bio) VALUES (%s, %s, %s)'
+        authorTuple = (authorDict['name'], authorDict['birthdate'], authorDict['bio'])
+        self.cursor.execute(sql, authorTuple)
         self.cnx.commit()
 
     def close_spider(self, spider):
