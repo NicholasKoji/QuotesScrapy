@@ -6,7 +6,7 @@ class QuotesSpider(scrapy.Spider):
 
     custom_settings = {
         'ITEM_PIPELINES': {
-            'project_name.pipelines.QuotesPipeline': 300
+            'QuotesScrapy.pipelines.QuotesPipeline': 300
         }
     }
 

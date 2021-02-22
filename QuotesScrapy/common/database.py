@@ -1,11 +1,12 @@
 import mysql.connector
 from mysql.connector import errorcode
 
-config = {'user': 'koji',
-          'password': '123456',
-          'host': 'localhost',
-          'database': 'quotes'
-          }
+config = {
+    'user': 'koji',
+    'password': '123456',
+    'host': 'localhost',
+    'database': 'quotes'
+}
 
 
 def dbConnect():
@@ -21,4 +22,5 @@ def dbConnect():
         else:
             print(err)
     else:
+        print('连接数据库成功')
         return cnx, cursor

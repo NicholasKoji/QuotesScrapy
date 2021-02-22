@@ -5,9 +5,14 @@
 
 
 # useful for handling different item types with a single interface
+import re
+from datetime import datetime
 from itemadapter import ItemAdapter
+from QuotesScrapy.common import database as db
 
-from common import database as db
+def getDate(str):
+    dateStr = re.sub(',', '', str)
+    return datetime.strptime(dateStr, '%Y/%m/%d')
 
 
 class AuthorPipeline:
@@ -18,16 +23,18 @@ class AuthorPipeline:
         pass
 
     def process_item(self, item, spider):
-        authorDict = {
-            'name': item.get('name', 'N/A'),
-            'birthdate': item.get('birthdate', 'N/A'),
-            'bio': item.get('bio', 'N/A'),
-        }
-        sql = ''
-        self.cursor.execute(sql, **authorDict)
+        authorDict = item
+        print('item=====>', authorDict['name'])
+        sql = (
+            '''INSERT INTO author
+            (name, birthdate, bio)
+            VALUES (%(name)s, %(birthdate)s, %(bio)s)'''
+        )
+        self.cursor.execute(sql, authorDict)
         self.cnx.commit()
 
     def close_spider(self, spider):
+        print('数据库连接已关闭')
         self.cnx.close()
         self.cursor.close()
 

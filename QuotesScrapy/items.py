@@ -2,11 +2,13 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/items.html
+# items为数据结构模板文件
+# 定义数据属性
 
 import scrapy
 
 
-class QuotesscrapyItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+class AuthorItem(scrapy.Item):
+    name = scrapy.Field()
+    birthdate = scrapy.Field()
+    bio = scrapy.Field()
