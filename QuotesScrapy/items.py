@@ -12,3 +12,8 @@ class AuthorItem(scrapy.Item):
     name = scrapy.Field()
     birthdate = scrapy.Field()
     bio = scrapy.Field()
+
+class QuotesItem(scrapy.Item):
+    text = scrapy.Field()
+    author = scrapy.Field()
+    tags = scrapy.Field()

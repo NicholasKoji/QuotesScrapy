@@ -5,8 +5,12 @@ config = {
     'user': 'koji',
     'password': '123456',
     'host': 'localhost',
+    'port': 3306,
     'database': 'quotes'
 }
+
+
+sqlalchemyURL = f'mysql+mysqlconnector://{config["user"]}:{config["password"]}@{config["host"]}:{config["port"]}/{config["database"]}?charset=utf8'
 
 
 def dbConnect():
@@ -24,3 +28,10 @@ def dbConnect():
     else:
         print('连接数据库成功')
         return cnx, cursor
+
+def truncateTable(cnx, cursor, tableName):
+    # 使用truncate table删除带有被引用外键的表，需要禁用外键约束
+    cursor.execute('set foreign_key_checks=0')
+    cursor.execute(f'truncate table {tableName}')
+    cursor.execute('set foreign_key_checks=1')
+    cnx.commit()
