@@ -50,5 +50,30 @@ class AuthorPipeline:
 
 
 class QuotesPipeline:
+    def __init__(self):
+        self.cnx, self.cursor = db.dbConnect()
+
+    def open_spider(self, spider):
+        db.truncateTable(self.cnx, self.cursor, 'quote')
+        # 查询author表里的所有作家
+        query = 'SELECT author_id, `name` FROM author'
+        authorDataSet = self.cursor.execute(query)
+        authorDataFrame = pd.DataFrame(authorDataSet, columns=['author_id', 'name'])
+        self.authorDataFrame = authorDataFrame
+
     def process_item(self, item, spider):
-        pass
+        quoteDict = item
+        quoteDataFrame = pd.DataFrame(quoteDict)
+        # 替换author name
+        quoteResultSet = quoteDataFrame.merge(self.authorDataFrame, how='left')['text', 'author']
+        # 重命名author_id
+        # 筛选出text、author_id字段，保存quote表数据
+        # 分析出quote和tag的关系数据，添加到表quote_ref_tag
+        sql = 'INSERT INTO quote (text, author) VALUES (%s, %s)'
+        quoteTuple = (quoteDict['text'], quoteDict['author'])
+        self.cursor.execute(sql, quoteTuple)
+        self.cnx.commit()
+
+    def close_spider(self, spider):
+        self.cnx.close()
+        self.cursor.close()
