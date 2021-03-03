@@ -24,12 +24,11 @@ class AuthorPipeline:
         db.truncateTable(self.cnx, self.cursor, 'author')
 
     def process_item(self, item, spider):
-        authorDict = item
-        authorDict['birthdate'] = getDate(authorDict['birthdate'])
-        print('name==========>', authorDict['name'])
-        print('birthdate=====>', authorDict['birthdate'])
+        item['birthdate'] = getDate(item['birthdate'])
+        print('name==========>', item['name'])
+        print('birthdate=====>', item['birthdate'])
         sql = 'INSERT IGNORE INTO author (name, birthdate, bio) VALUES (%s, %s, %s)'
-        authorTuple = (authorDict['name'], authorDict['birthdate'], authorDict['bio'])
+        authorTuple = (item['name'], item['birthdate'], item['bio'])
         self.cursor.execute(sql, authorTuple)
         self.cnx.commit()
 
@@ -44,7 +43,6 @@ class AuthorPipeline:
         db.truncateTable(self.cnx, self.cursor, 'author')
         conn = create_engine(db.sqlalchemyURL)
         authorResultSet.to_sql(name='author', con=conn, if_exists='append', index=False)
-        print('数据库连接已关闭')
         self.cnx.close()
         self.cursor.close()
 
@@ -52,28 +50,55 @@ class AuthorPipeline:
 class QuotesPipeline:
     def __init__(self):
         self.cnx, self.cursor = db.dbConnect()
+        self.conn = create_engine(db.sqlalchemyURL)
 
     def open_spider(self, spider):
         db.truncateTable(self.cnx, self.cursor, 'quote')
-        # 查询author表里的所有作家
+        db.truncateTable(self.cnx, self.cursor, 'tag')
+        db.truncateTable(self.cnx, self.cursor, 'quote_ref_tag')
+        # 初始化tag结果集、quotes数据
+        self.tagResultSet = pd.DataFrame(columns=['tag'])
+        self.quotesRefData = pd.DataFrame(columns=['text', 'tag'])
+        # 查询author表里的所有作家，添加到self方便匹配author id
         query = 'SELECT author_id, `name` FROM author'
-        authorDataSet = self.cursor.execute(query)
-        authorDataFrame = pd.DataFrame(authorDataSet, columns=['author_id', 'name'])
-        self.authorDataFrame = authorDataFrame
+        self.cursor.execute(query)
+        authorDataSet = self.cursor.fetchall()
+        self.authorDataFrame = pd.DataFrame(authorDataSet, columns=['author_id', 'name'])
 
     def process_item(self, item, spider):
-        quoteDict = item
-        quoteDataFrame = pd.DataFrame(quoteDict)
-        # 替换author name
-        quoteResultSet = quoteDataFrame.merge(self.authorDataFrame, how='left')['text', 'author']
-        # 重命名author_id
-        # 筛选出text、author_id字段，保存quote表数据
-        # 分析出quote和tag的关系数据，添加到表quote_ref_tag
-        sql = 'INSERT INTO quote (text, author) VALUES (%s, %s)'
-        quoteTuple = (quoteDict['text'], quoteDict['author'])
-        self.cursor.execute(sql, quoteTuple)
+        quotesDataFrame = pd.DataFrame(data=item.values(), index=item.keys()).T
+        quoteDataFrame = quotesDataFrame[['text', 'author']]
+        # 匹配author name
+        quoteResultSet = quoteDataFrame.merge(self.authorDataFrame, how='left', left_on='author', right_on='name')
+        # 提取列text、author
+        quoteDataSet = quoteResultSet[['text', 'author_id']]
+        # 保存quote表数据，转成tuple导入。使用to_sql效率太低并且是pandas是用不同的SQL连接，会出问题
+        quoteDataTuple = quoteDataSet.to_records(index=False).tolist()[0]
+        sql = 'INSERT IGNORE INTO quote (text, author_id) VALUES (%s, %s)'
+        self.cursor.execute(sql, quoteDataTuple)
         self.cnx.commit()
+        # 叠加tag数据
+        tagDataFrame = pd.DataFrame(item['tags'], columns=['tag'])
+        self.tagResultSet = self.tagResultSet.append(tagDataFrame)
+        # 叠加quotesRef数据
+        quotesRefDataFrame = pd.DataFrame({'text': item['text'], 'tag': item['tags']})
+        self.quotesRefData = self.quotesRefData.append(quotesRefDataFrame)
 
     def close_spider(self, spider):
+        # 剔除重复的tag数据后保存
+        tagDataSet = self.tagResultSet.drop_duplicates(subset=['tag'])
+        tagDataSet.to_sql(name='tag', con=self.conn, if_exists='append', index=False)
+        # 分析quote和tag的关系数据，添加到表quote_ref_tag
+        self.cursor.execute('SELECT text, quote_id FROM quote')
+        quoteIdData = self.cursor.fetchall()
+        quoteIdDataFrame = pd.DataFrame(quoteIdData, columns=['text', 'quote_id'])
+        quotesRefResultSet = self.quotesRefData.merge(quoteIdDataFrame, how='left', on='text')
+        self.cursor.execute('SELECT tag, tag_id FROM tag')
+        tagIdData = self.cursor.fetchall()
+        tagIdDataFrame = pd.DataFrame(tagIdData, columns=['tag', 'tag_id'])
+        quotesRefResultSet = quotesRefResultSet.merge(tagIdDataFrame, how='left', on='tag')
+        quotesRefDataSet = quotesRefResultSet[['quote_id', 'tag_id']]
+        quotesRefDataSet.to_sql(name='quote_ref_tag', con=self.conn, if_exists='append', index=False)
+
         self.cnx.close()
         self.cursor.close()

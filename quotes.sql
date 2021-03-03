@@ -35,7 +35,7 @@ CREATE TABLE `author`  (
 DROP TABLE IF EXISTS `quote`;
 CREATE TABLE `quote`  (
   `quote_id` int(0) NOT NULL AUTO_INCREMENT COMMENT '唯一标识ID',
-  `text` varchar(1000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '引用的语句',
+  `text` varchar(10000) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '引用的语句',
   `author_id` int(0) NULL DEFAULT NULL COMMENT '作家ID',
   PRIMARY KEY (`quote_id`) USING BTREE,
   INDEX `author_id`(`author_id`) USING BTREE,

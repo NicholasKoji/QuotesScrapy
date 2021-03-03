@@ -26,7 +26,6 @@ def dbConnect():
         else:
             print(err)
     else:
-        print('连接数据库成功')
         return cnx, cursor
 
 def truncateTable(cnx, cursor, tableName):
@@ -34,4 +33,5 @@ def truncateTable(cnx, cursor, tableName):
     cursor.execute('set foreign_key_checks=0')
     cursor.execute(f'truncate table {tableName}')
     cursor.execute('set foreign_key_checks=1')
+    cursor.execute(f'ALTER TABLE {tableName} AUTO_INCREMENT = 10000')
     cnx.commit()

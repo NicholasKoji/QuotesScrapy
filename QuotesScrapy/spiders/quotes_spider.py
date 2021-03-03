@@ -12,7 +12,7 @@ class QuotesSpider(scrapy.Spider):
     }
 
     start_urls = [
-        'http://quotes.toscrape.com/page/1/',
+        'http://quotes.toscrape.com',
     ]
 
     def parse(self, response):
@@ -25,7 +25,7 @@ class QuotesSpider(scrapy.Spider):
             yield quoteItem
 
 
-        # next_page = response.css('li.next a::attr(href)').get()
-        # if next_page is not None:
-        #     print('URL postfix===>', next_page)
-        #     yield response.follow(next_page, callback=self.parse)
+        next_page = response.css('li.next a::attr(href)').get()
+        if next_page is not None:
+            print('URL postfix===>', next_page)
+            yield response.follow(next_page, callback=self.parse)
