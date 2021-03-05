@@ -17,7 +17,6 @@ class QuotesSpider(scrapy.Spider):
 
     def parse(self, response):
         for quote in response.css('div.quote'):
-            print('=============================================')
             quoteItem = QuotesItem()
             quoteItem['text'] = quote.css('span.text::text').get()
             quoteItem['author'] = quote.css('small.author::text').get()
@@ -27,5 +26,4 @@ class QuotesSpider(scrapy.Spider):
 
         next_page = response.css('li.next a::attr(href)').get()
         if next_page is not None:
-            print('URL postfix===>', next_page)
             yield response.follow(next_page, callback=self.parse)

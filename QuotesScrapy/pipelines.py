@@ -25,8 +25,6 @@ class AuthorPipeline:
 
     def process_item(self, item, spider):
         item['birthdate'] = getDate(item['birthdate'])
-        print('name==========>', item['name'])
-        print('birthdate=====>', item['birthdate'])
         sql = 'INSERT IGNORE INTO author (name, birthdate, bio) VALUES (%s, %s, %s)'
         authorTuple = (item['name'], item['birthdate'], item['bio'])
         self.cursor.execute(sql, authorTuple)
